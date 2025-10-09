@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Take Test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="loading">Loading test...</div>
+  </div>
+
+  <script src="parser.js"></script>
+  <script>
+    let currentTest = null
+    let answers = []
+    
+    function loadTest() {
+      const hash = window.location.hash.slice(1)
+      
+      if (!hash) {
+        document.getElementById('app').innerHTML = `
+          <div class="error">
+            <h2>No test found</h2>
+            <p><a href="create.html">Create your own test</a></p>
+          </div>
+        `
+        return
+      }
+      
+      currentTest = decodeTest(hash)
+      
+      if (!currentTest) {
+        document.getElementById('app').innerHTML = `
+          <div class="error">
+            <h2>Invalid test link</h2>
+            <p><a href="create.html">Create your own test</a></p>
+          </div>
+        `
+        return
+      }
+      
+      answers = new Array(currentTest.questions.length).fill(null)
+      renderTest()
+    }
+    
+    function renderTest() {
+      const questionsHTML = currentTest.questions.map((q, i) => {
+        const scale = Array.from({ length: q.scale }, (_, j) => j + 1)
+        
+        return `
+          <div class="question">
+            <p><strong>Question ${i + 1}:</strong> ${q.text}</p>
+            <div class="likert">
+              ${scale.map(value => `
+                <label>
+                  <input type="radio" 
+                         name="q${i}" 
+                         value="${value}"
+                         onchange="setAnswer(${i}, ${value})">
+                  ${value}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        `
+      }).join('')
+      
+      document.getElementById('app').innerHTML = `
+        <h1>Personality Test</h1>
+        ${questionsHTML}
+        <button onclick="submitTest()" id="submitBtn" disabled>
+          Submit Answers
+        </button>
+      `
+    }
+    
+    function setAnswer(questionIndex, value) {
+      answers[questionIndex] = value
+      
+      // Enable submit if all answered
+      const allAnswered = answers.every(a => a !== null)
+      document.getElementById('submitBtn').disabled = !allAnswered
+    }
+    
+    function submitTest() {
+      const result = scoreTest(currentTest, answers)
+      showResults(result)
+    }
+    
+    function showResults(result) {
+      const dimensionsHTML = currentTest.dimensions.map(dim => {
+        const score = result.scores[dim.name]
+        const [min, max] = dim.range
+        const percentage = ((score - min) / (max - min)) * 100
+        
+        return `
+          <div class="dimension">
+            <h3>${dim.name}</h3>
+            <p>Score: ${score.toFixed(1)}</p>
+            <div class="bar-container">
+              <div class="bar" style="width: ${percentage}%"></div>
+            </div>
+          </div>
+        `
+      }).join('')
+      
+      document.getElementById('app').innerHTML = `
+        <div class="results">
+          <h1>Your Results</h1>
+          
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2>Your Type:</h2>
+            <p style="font-size: 1.2rem;">${result.interpretation}</p>
+          </div>
+          
+          <h2>Dimension Scores:</h2>
+          ${dimensionsHTML}
+          
+          <button onclick="location.reload()">Take Again</button>
+          <button onclick="location.href='create.html'">Create Your Own</button>
+        </div>
+      `
+    }
+    
+    // Load test on page load
+    loadTest()
+  </script>
+</body>
+</html>
