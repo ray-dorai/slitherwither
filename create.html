@@ -2,15 +2,24 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Create Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Test - SlitherWither</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
 </head>
 <body>
   <h1>Create Your Test</h1>
   
   <div class="editor">
+    <div style="margin-bottom: 20px;">
+      <strong>Load example:</strong>
+      <button onclick="loadExample('mbti')">Myers-Briggs Style</button>
+      <button onclick="loadExample('team')">Team Roles</button>
+      <button onclick="loadExample('learning')">Learning Styles</button>
+    </div>
+
     <h3>Test Definition</h3>
-    <textarea id="definition" rows="20" placeholder="Start typing...">dimension introversion
+    <textarea id="definition" rows="25" placeholder="Start typing or load an example...">dimension introversion
   range -10 to 10
 
 dimension analytical
@@ -42,15 +51,280 @@ interpretation
     <button onclick="createShareLink()">Create Share Link</button>
     
     <div id="error" class="error" style="display:none"></div>
-    <div id="shareLink" style="display:none; margin-top: 20px;">
-      <h3>Share this link:</h3>
-      <input type="text" id="linkInput" readonly style="width: 100%; padding: 8px; margin-top: 10px;">
+    <div id="shareLink" style="display:none; margin-top: 20px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+      <h3>✓ Share this link:</h3>
+      <input type="text" id="linkInput" readonly style="width: 100%; padding: 12px; margin: 10px 0; font-family: monospace; font-size: 14px;">
       <button onclick="copyLink()">Copy Link</button>
     </div>
   </div>
 
+  <div style="margin-top: 40px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+    <h3>Syntax Guide</h3>
+    <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto;">
+<strong>dimension</strong> dimension_name
+  <strong>range</strong> -10 to 10
+
+<strong>question</strong>
+  <strong>text</strong> "Your question here"
+  <strong>scale</strong> 1 to 5
+  <strong>scoring</strong>
+    dimension_name +1
+
+<strong>interpretation</strong>
+  <strong>if</strong> dimension_name > 5
+    Your interpretation text here
+    </pre>
+  </div>
+
   <script src="parser.js"></script>
   <script>
+    const examples = {
+      mbti: `dimension introversion
+  range -10 to 10
+
+dimension thinking
+  range -10 to 10
+
+dimension judging
+  range -10 to 10
+
+dimension sensing
+  range -10 to 10
+
+question
+  text "I prefer spending time alone to recharge"
+  scale 1 to 5
+  scoring
+    introversion +1
+
+question
+  text "I enjoy meeting new people at social events"
+  scale 1 to 5
+  scoring
+    introversion -1
+
+question
+  text "I make decisions based on logic rather than feelings"
+  scale 1 to 5
+  scoring
+    thinking +1
+
+question
+  text "I consider how my decisions affect others emotionally"
+  scale 1 to 5
+  scoring
+    thinking -1
+
+question
+  text "I like to have things planned and organized"
+  scale 1 to 5
+  scoring
+    judging +1
+
+question
+  text "I prefer to keep my options open and be spontaneous"
+  scale 1 to 5
+  scoring
+    judging -1
+
+question
+  text "I focus on concrete facts and details"
+  scale 1 to 5
+  scoring
+    sensing +1
+
+question
+  text "I enjoy exploring abstract ideas and possibilities"
+  scale 1 to 5
+  scoring
+    sensing -1
+
+interpretation
+  if introversion > 3
+  if thinking > 3
+    You're an INTJ - The Architect: Strategic, logical, and independent. You excel at long-term planning and systems thinking.
+
+interpretation
+  if introversion > 3
+  if thinking < -3
+    You're an INFJ - The Advocate: Insightful, principled, and empathetic. You seek meaning and connection in everything.
+
+interpretation
+  if introversion < -3
+  if thinking > 3
+    You're an ENTJ - The Commander: Bold, decisive, and strategic. You're a natural leader who sees the big picture.
+
+interpretation
+  if introversion < -3
+  if thinking < -3
+    You're an ENFJ - The Protagonist: Charismatic, inspiring, and empathetic. You naturally bring out the best in others.`,
+
+      team: `dimension leadership
+  range -10 to 10
+
+dimension creativity
+  range -10 to 10
+
+dimension detail_oriented
+  range -10 to 10
+
+dimension collaborative
+  range -10 to 10
+
+question
+  text "I enjoy taking charge of projects and making key decisions"
+  scale 1 to 5
+  scoring
+    leadership +1
+
+question
+  text "I prefer following someone else's lead rather than directing"
+  scale 1 to 5
+  scoring
+    leadership -1
+
+question
+  text "I love brainstorming new ideas and innovative solutions"
+  scale 1 to 5
+  scoring
+    creativity +1
+
+question
+  text "I prefer refining existing ideas rather than creating new ones"
+  scale 1 to 5
+  scoring
+    creativity -1
+
+question
+  text "I notice small details that others might miss"
+  scale 1 to 5
+  scoring
+    detail_oriented +1
+
+question
+  text "I focus on the big picture and overall strategy"
+  scale 1 to 5
+  scoring
+    detail_oriented -1
+
+question
+  text "I work best when collaborating closely with others"
+  scale 1 to 5
+  scoring
+    collaborative +1
+
+question
+  text "I'm most productive working independently"
+  scale 1 to 5
+  scoring
+    collaborative -1
+
+interpretation
+  if leadership > 3
+  if creativity > 3
+    You're an Innovator: You lead with vision and creativity, inspiring teams to think differently and embrace change.
+
+interpretation
+  if leadership > 3
+  if detail_oriented > 3
+    You're a Coordinator: You organize teams and ensure quality, bringing structure to complex projects.
+
+interpretation
+  if creativity > 3
+  if collaborative > 3
+    You're a Creator: You thrive in collaborative brainstorming, building on others' ideas to create something new.
+
+interpretation
+  if detail_oriented > 3
+  if collaborative > 3
+    You're a Specialist: You excel at careful execution and quality assurance, making sure nothing falls through the cracks.
+
+interpretation
+  if leadership < -3
+  if collaborative > 3
+    You're a Supporter: You enable others to succeed, providing crucial assistance and maintaining team harmony.`,
+
+      learning: `dimension visual
+  range -10 to 10
+
+dimension analytical
+  range -10 to 10
+
+dimension practical
+  range -10 to 10
+
+question
+  text "I learn best from diagrams, charts, and visual aids"
+  scale 1 to 5
+  scoring
+    visual +1
+
+question
+  text "I prefer reading text explanations over looking at pictures"
+  scale 1 to 5
+  scoring
+    visual -1
+
+question
+  text "I like to understand why something works before learning how"
+  scale 1 to 5
+  scoring
+    analytical +1
+
+question
+  text "I prefer jumping in and learning by doing"
+  scale 1 to 5
+  scoring
+    practical +1
+
+question
+  text "I take detailed notes and create outlines when studying"
+  scale 1 to 5
+  scoring
+    analytical +1
+
+question
+  text "I remember things better when I practice them hands-on"
+  scale 1 to 5
+  scoring
+    practical +1
+
+question
+  text "I can visualize concepts easily in my mind"
+  scale 1 to 5
+  scoring
+    visual +1
+
+question
+  text "I need to see real-world applications to stay engaged"
+  scale 1 to 5
+  scoring
+    practical +1
+
+interpretation
+  if visual > 3
+  if analytical > 3
+    You're a Visual Analyst: You excel at understanding complex systems through diagrams and structured thinking.
+
+interpretation
+  if visual > 3
+  if practical > 3
+    You're a Visual Practitioner: You learn best by seeing demonstrations and then practicing the technique yourself.
+
+interpretation
+  if analytical > 3
+  if practical < -3
+    You're a Theoretical Thinker: You love understanding deep principles and building mental models before application.
+
+interpretation
+  if practical > 3
+    You're a Hands-On Learner: You learn by doing, experimenting, and getting immediate feedback from real experiences.`
+    }
+
+    function loadExample(name) {
+      document.getElementById('definition').value = examples[name]
+    }
+
     function showError(msg) {
       const errorDiv = document.getElementById('error')
       errorDiv.textContent = msg
@@ -74,7 +348,7 @@ interpretation
           return
         }
         
-        alert(`✓ Valid test!\n${test.dimensions.length} dimensions\n${test.questions.length} questions`)
+        alert(`✓ Valid test!\n\n${test.dimensions.length} dimensions\n${test.questions.length} questions\n${test.interpretations.length} interpretations`)
       } catch (e) {
         showError('Parse error: ' + e.message)
       }
@@ -85,11 +359,25 @@ interpretation
       
       try {
         const test = parseTest(text)
+        
+        if (test.dimensions.length === 0) {
+          showError('Add at least one dimension!')
+          return
+        }
+        
+        if (test.questions.length === 0) {
+          showError('Add at least one question!')
+          return
+        }
+        
         const encoded = encodeTest(test)
         const url = `${window.location.origin}/test.html#${encoded}`
         
         document.getElementById('linkInput').value = url
         document.getElementById('shareLink').style.display = 'block'
+        
+        // Scroll to the share link
+        document.getElementById('shareLink').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       } catch (e) {
         showError('Error creating link: ' + e.message)
       }
@@ -99,7 +387,11 @@ interpretation
       const input = document.getElementById('linkInput')
       input.select()
       document.execCommand('copy')
-      alert('Link copied!')
+      
+      const btn = event.target
+      const originalText = btn.textContent
+      btn.textContent = '✓ Copied!'
+      setTimeout(() => btn.textContent = originalText, 2000)
     }
   </script>
 </body>
