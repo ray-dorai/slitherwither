@@ -26,26 +26,48 @@ dimension analytical
   range -10 to 10
 
 question
-  text "I prefer working alone"
+  text "I prefer working alone to working in groups"
   scale 1 to 5
   scoring
     introversion +1
 
 question
-  text "I make decisions based on logic"
+  text "I enjoy socializing and meeting new people"
+  scale 1 to 5
+  scoring
+    introversion -1
+
+question
+  text "I make decisions based on logic rather than feelings"
   scale 1 to 5
   scoring
     analytical +1
 
+question
+  text "I consider emotions when making important decisions"
+  scale 1 to 5
+  scoring
+    analytical -1
+
 interpretation
-  if introversion > 3
-  if analytical > 3
+  if introversion > 2
+  if analytical > 2
     You're an Architect - logical and independent
 
 interpretation
-  if introversion > 3
-  if analytical < -3
-    You're a Mediator - empathetic and introspective</textarea>
+  if introversion > 2
+  if analytical < -2
+    You're a Mediator - empathetic and introspective
+
+interpretation
+  if introversion < -2
+  if analytical > 2
+    You're a Commander - strategic and outgoing
+
+interpretation
+  if introversion < -2
+  if analytical < -2
+    You're a Protagonist - inspiring and people-focused</textarea>
 
     <button onclick="previewTest()">Preview</button>
     <button onclick="createShareLink()">Create Share Link</button>
