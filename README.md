@@ -23,8 +23,3 @@ question
 
 Click "Create Share Link" and send to friends!
 
-## Tech Stack
-- Vanilla JavaScript
-- Zero dependencies
-- Client-side only
-- Free hosting on Vercel
