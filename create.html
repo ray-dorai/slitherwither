@@ -19,55 +19,165 @@
     </div>
 
     <h3>Test Definition</h3>
-    <textarea id="definition" rows="25" placeholder="Start typing or load an example...">dimension introversion
-  range -10 to 10
+    <textarea id="definition" rows="25" placeholder="Start typing or load an example...">dimension extraversion
+  range -25 to 25
 
-dimension analytical
-  range -10 to 10
+dimension agreeableness
+  range -25 to 25
 
-question
-  text "I prefer working alone to working in groups"
-  scale 1 to 5
-  scoring
-    introversion +1
+dimension conscientiousness
+  range -25 to 25
 
-question
-  text "I enjoy socializing and meeting new people"
-  scale 1 to 5
-  scoring
-    introversion -1
+dimension emotional_stability
+  range -25 to 25
+
+dimension intellect
+  range -25 to 25
 
 question
-  text "I make decisions based on logic rather than feelings"
+  text "Am the life of the party"
   scale 1 to 5
   scoring
-    analytical +1
+    extraversion +1
 
 question
-  text "I consider emotions when making important decisions"
+  text "Feel comfortable around people"
   scale 1 to 5
   scoring
-    analytical -1
+    extraversion +1
+
+question
+  text "Don't talk a lot"
+  scale 1 to 5
+  scoring
+    extraversion -1
+
+question
+  text "Keep in the background"
+  scale 1 to 5
+  scoring
+    extraversion -1
+
+question
+  text "Am interested in people"
+  scale 1 to 5
+  scoring
+    agreeableness +1
+
+question
+  text "Sympathize with others' feelings"
+  scale 1 to 5
+  scoring
+    agreeableness +1
+
+question
+  text "Am not really interested in others"
+  scale 1 to 5
+  scoring
+    agreeableness -1
+
+question
+  text "Insult people"
+  scale 1 to 5
+  scoring
+    agreeableness -1
+
+question
+  text "Am always prepared"
+  scale 1 to 5
+  scoring
+    conscientiousness +1
+
+question
+  text "Pay attention to details"
+  scale 1 to 5
+  scoring
+    conscientiousness +1
+
+question
+  text "Leave my belongings around"
+  scale 1 to 5
+  scoring
+    conscientiousness -1
+
+question
+  text "Make a mess of things"
+  scale 1 to 5
+  scoring
+    conscientiousness -1
+
+question
+  text "Am relaxed most of the time"
+  scale 1 to 5
+  scoring
+    emotional_stability +1
+
+question
+  text "Seldom feel blue"
+  scale 1 to 5
+  scoring
+    emotional_stability +1
+
+question
+  text "Get stressed out easily"
+  scale 1 to 5
+  scoring
+    emotional_stability -1
+
+question
+  text "Worry about things"
+  scale 1 to 5
+  scoring
+    emotional_stability -1
+
+question
+  text "Have a rich vocabulary"
+  scale 1 to 5
+  scoring
+    intellect +1
+
+question
+  text "Have a vivid imagination"
+  scale 1 to 5
+  scoring
+    intellect +1
+
+question
+  text "Have difficulty understanding abstract ideas"
+  scale 1 to 5
+  scoring
+    intellect -1
+
+question
+  text "Am not interested in abstract ideas"
+  scale 1 to 5
+  scoring
+    intellect -1
 
 interpretation
-  if introversion > 2
-  if analytical > 2
-    You're an Architect - logical and independent
+  if extraversion > 5
+  if conscientiousness > 5
+    High Extraversion, High Conscientiousness: You're organized, social, and achievement-oriented. You thrive in leadership roles and group settings.
 
 interpretation
-  if introversion > 2
-  if analytical < -2
-    You're a Mediator - empathetic and introspective
+  if extraversion > 5
+  if agreeableness > 5
+    High Extraversion, High Agreeableness: You're warm, outgoing, and people-focused. You excel at building relationships and creating harmony.
 
 interpretation
-  if introversion < -2
-  if analytical > 2
-    You're a Commander - strategic and outgoing
+  if conscientiousness > 5
+  if emotional_stability > 5
+    High Conscientiousness, High Stability: You're reliable, calm, and methodical. You handle pressure well and deliver consistent results.
 
 interpretation
-  if introversion < -2
-  if analytical < -2
-    You're a Protagonist - inspiring and people-focused</textarea>
+  if intellect > 5
+  if extraversion > 5
+    High Intellect, High Extraversion: You're intellectually curious and socially engaged. You love discussing ideas with others.
+
+interpretation
+  if agreeableness > 5
+  if emotional_stability > 5
+    High Agreeableness, High Stability: You're easygoing, empathetic, and emotionally balanced. You create peaceful, supportive environments.</textarea>
 
     <button onclick="previewTest()">Preview</button>
     <button onclick="createShareLink()">Create Share Link</button>
