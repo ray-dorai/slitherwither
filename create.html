@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Create Test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Create Your Test</h1>
+  
+  <div class="editor">
+    <h3>Test Definition</h3>
+    <textarea id="definition" rows="20" placeholder="Start typing...">dimension introversion
+  range -10 to 10
+
+dimension analytical
+  range -10 to 10
+
+question
+  text "I prefer working alone"
+  scale 1 to 5
+  scoring
+    introversion +1
+
+question
+  text "I make decisions based on logic"
+  scale 1 to 5
+  scoring
+    analytical +1
+
+interpretation
+  if introversion > 3
+  if analytical > 3
+    You're an Architect - logical and independent
+
+interpretation
+  if introversion > 3
+  if analytical < -3
+    You're a Mediator - empathetic and introspective</textarea>
+
+    <button onclick="previewTest()">Preview</button>
+    <button onclick="createShareLink()">Create Share Link</button>
+    
+    <div id="error" class="error" style="display:none"></div>
+    <div id="shareLink" style="display:none; margin-top: 20px;">
+      <h3>Share this link:</h3>
+      <input type="text" id="linkInput" readonly style="width: 100%; padding: 8px; margin-top: 10px;">
+      <button onclick="copyLink()">Copy Link</button>
+    </div>
+  </div>
+
+  <script src="parser.js"></script>
+  <script>
+    function showError(msg) {
+      const errorDiv = document.getElementById('error')
+      errorDiv.textContent = msg
+      errorDiv.style.display = 'block'
+      setTimeout(() => errorDiv.style.display = 'none', 5000)
+    }
+    
+    function previewTest() {
+      const text = document.getElementById('definition').value
+      
+      try {
+        const test = parseTest(text)
+        
+        if (test.dimensions.length === 0) {
+          showError('Add at least one dimension!')
+          return
+        }
+        
+        if (test.questions.length === 0) {
+          showError('Add at least one question!')
+          return
+        }
+        
+        alert(`✓ Valid test!\n${test.dimensions.length} dimensions\n${test.questions.length} questions`)
+      } catch (e) {
+        showError('Parse error: ' + e.message)
+      }
+    }
+    
+    function createShareLink() {
+      const text = document.getElementById('definition').value
+      
+      try {
+        const test = parseTest(text)
+        const encoded = encodeTest(test)
+        const url = `${window.location.origin}/test.html#${encoded}`
+        
+        document.getElementById('linkInput').value = url
+        document.getElementById('shareLink').style.display = 'block'
+      } catch (e) {
+        showError('Error creating link: ' + e.message)
+      }
+    }
+    
+    function copyLink() {
+      const input = document.getElementById('linkInput')
+      input.select()
+      document.execCommand('copy')
+      alert('Link copied!')
+    }
+  </script>
+</body>
+</html>
