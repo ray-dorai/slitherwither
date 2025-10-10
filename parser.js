@@ -5,12 +5,14 @@ function parseTest(text) {
   const test = {
     dimensions: [],
     questions: [],
-    interpretations: []
+    interpretations: [],
+    characters: []
   }
   
   let currentSection = null
   let currentQuestion = null
   let currentInterpretation = null
+  let currentCharacter = null
   
   for (const line of lines) {
     const indent = line.search(/\S/)
@@ -21,6 +23,9 @@ function parseTest(text) {
       const name = content.slice(10).trim()
       currentSection = { name, range: [-10, 10] }
       test.dimensions.push(currentSection)
+      currentQuestion = null
+      currentInterpretation = null
+      currentCharacter = null
     }
     
     // Range for dimension
@@ -36,6 +41,8 @@ function parseTest(text) {
       currentQuestion = { text: '', scale: 5, scoring: {} }
       test.questions.push(currentQuestion)
       currentSection = null
+      currentInterpretation = null
+      currentCharacter = null
     }
     
     // Question text
@@ -64,10 +71,29 @@ function parseTest(text) {
       currentQuestion.scoring[dimension] = weight
     }
     
+    // Character definition
+    else if (content.startsWith('character ')) {
+      const name = content.slice(10).replace(/^["']|["']$/g, '')
+      currentCharacter = { name, scores: {} }
+      test.characters.push(currentCharacter)
+      currentSection = null
+      currentQuestion = null
+      currentInterpretation = null
+    }
+    
+    // Character dimension scores (indented under character)
+    else if (indent > 0 && currentCharacter && content.includes(' ') && !content.startsWith('if')) {
+      const parts = content.split(' ')
+      const dimension = parts[0]
+      const score = parseFloat(parts[1]) || 0
+      currentCharacter.scores[dimension] = score
+    }
+    
     // Interpretation
     else if (content.startsWith('interpretation')) {
       currentInterpretation = { conditions: {}, text: '' }
       test.interpretations.push(currentInterpretation)
+      currentCharacter = null
     }
     
     // Interpretation condition
@@ -146,4 +172,36 @@ function scoreTest(test, answers) {
   }
   
   return { scores, interpretation }
+}
+
+// Character matching engine
+function findBestMatches(test, userScores) {
+  if (test.characters.length === 0) {
+    return null  // No characters defined
+  }
+  
+  const distances = test.characters.map(char => {
+    let sumSquares = 0
+    let dimensionCount = 0
+    
+    for (const dim in char.scores) {
+      if (userScores[dim] !== undefined) {
+        const diff = userScores[dim] - char.scores[dim]
+        sumSquares += diff * diff
+        dimensionCount++
+      }
+    }
+    
+    const distance = Math.sqrt(sumSquares)
+    const maxDistance = Math.sqrt(dimensionCount * Math.pow(50, 2))  // Worst case
+    const similarity = Math.max(0, 100 - (distance / maxDistance * 100))
+    
+    return {
+      name: char.name,
+      distance: distance,
+      similarity: Math.round(similarity)
+    }
+  })
+  
+  return distances.sort((a, b) => a.distance - b.distance)
 }
