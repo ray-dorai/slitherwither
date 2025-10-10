@@ -16,6 +16,7 @@
       <button onclick="loadExample('mbti')">Myers-Briggs Style</button>
       <button onclick="loadExample('team')">Team Roles</button>
       <button onclick="loadExample('learning')">Learning Styles</button>
+      <button onclick="loadExample('hogwarts')">Hogwarts Houses</button>
     </div>
 
     <h3>Test Definition</h3>
@@ -201,6 +202,10 @@ interpretation
   <strong>scale</strong> 1 to 5
   <strong>scoring</strong>
     dimension_name +1
+
+<strong>character</strong> "Character Name"
+  dimension_name 5
+  another_dimension -3
 
 <strong>interpretation</strong>
   <strong>if</strong> dimension_name > 5
@@ -450,7 +455,91 @@ interpretation
 
 interpretation
   if practical > 3
-    You're a Hands-On Learner: You learn by doing, experimenting, and getting immediate feedback from real experiences.`
+    You're a Hands-On Learner: You learn by doing, experimenting, and getting immediate feedback from real experiences.`,
+
+      hogwarts: `dimension bravery
+  range -10 to 10
+
+dimension intelligence
+  range -10 to 10
+
+dimension ambition
+  range -10 to 10
+
+dimension loyalty
+  range -10 to 10
+
+question
+  text "I stand up for what I believe in, even when it's difficult"
+  scale 1 to 5
+  scoring
+    bravery +1
+
+question
+  text "I prefer to think before I act"
+  scale 1 to 5
+  scoring
+    intelligence +1
+
+question
+  text "I am driven to succeed and achieve my goals"
+  scale 1 to 5
+  scoring
+    ambition +1
+
+question
+  text "I value loyalty and friendship above all else"
+  scale 1 to 5
+  scoring
+    loyalty +1
+
+question
+  text "I enjoy taking risks and seeking adventure"
+  scale 1 to 5
+  scoring
+    bravery +1
+
+question
+  text "I enjoy solving complex problems"
+  scale 1 to 5
+  scoring
+    intelligence +1
+
+question
+  text "I am competitive and like to win"
+  scale 1 to 5
+  scoring
+    ambition +1
+
+question
+  text "I will always support my friends"
+  scale 1 to 5
+  scoring
+    loyalty +1
+
+character "Gryffindor"
+  bravery 8
+  intelligence 5
+  ambition 5
+  loyalty 7
+
+character "Ravenclaw"
+  bravery 4
+  intelligence 9
+  ambition 6
+  loyalty 5
+
+character "Slytherin"
+  bravery 5
+  intelligence 7
+  ambition 9
+  loyalty 4
+
+character "Hufflepuff"
+  bravery 6
+  intelligence 5
+  ambition 3
+  loyalty 9`
     }
 
     function loadExample(name) {
@@ -480,7 +569,7 @@ interpretation
           return
         }
         
-        alert(`✓ Valid test!\n\n${test.dimensions.length} dimensions\n${test.questions.length} questions\n${test.interpretations.length} interpretations`)
+        alert(`✓ Valid test!\n\n${test.dimensions.length} dimensions\n${test.questions.length} questions\n${test.interpretations.length} interpretations\n${test.characters.length} characters`)
       } catch (e) {
         showError('Parse error: ' + e.message)
       }
