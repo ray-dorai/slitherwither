@@ -13,11 +13,20 @@
   <script src="parser.js"></script>
   <script>
     let currentTest = null
+    let previousResults = []
     let answers = []
-    
+
+    const GROUP_COLORS = ['#9FB85E', '#FFB930', '#E57373', '#64B5F6', '#BA68C8', '#4DB6AC', '#FF8A65', '#A1887F']
+
+    function escapeHTML(str) {
+      const div = document.createElement('div')
+      div.textContent = str
+      return div.innerHTML
+    }
+
     function loadTest() {
       const hash = window.location.hash.slice(1)
-      
+
       if (!hash) {
         document.getElementById('app').innerHTML = `
           <div class="error">
@@ -27,10 +36,10 @@
         `
         return
       }
-      
-      currentTest = decodeTest(hash)
-      
-      if (!currentTest) {
+
+      const decoded = decodeTest(hash)
+
+      if (!decoded) {
         document.getElementById('app').innerHTML = `
           <div class="error">
             <h2>Invalid test link</h2>
@@ -39,23 +48,63 @@
         `
         return
       }
-      
+
+      if (decoded.dimensions) {
+        // Old format: bare test object
+        currentTest = decoded
+        previousResults = []
+      } else if (decoded.test) {
+        // New format: test + group results
+        currentTest = decoded.test
+        previousResults = decoded.results || []
+      } else {
+        document.getElementById('app').innerHTML = `
+          <div class="error">
+            <h2>Invalid test link</h2>
+            <p><a href="create.html">Create your own test</a></p>
+          </div>
+        `
+        return
+      }
+
       answers = new Array(currentTest.questions.length).fill(null)
       renderTest()
     }
-    
+
+    function formatNames(results) {
+      const names = results.map(r => escapeHTML(r.name))
+      if (names.length <= 3) {
+        if (names.length === 1) return names[0]
+        if (names.length === 2) return names[0] + ' and ' + names[1]
+        return names[0] + ', ' + names[1] + ', and ' + names[2]
+      }
+      const shown = names.slice(0, 3).join(', ')
+      const others = names.length - 3
+      return shown + ', and ' + others + ' other' + (others > 1 ? 's' : '')
+    }
+
     function renderTest() {
+      let teaserHTML = ''
+      if (previousResults.length > 0) {
+        teaserHTML = `
+          <div class="teaser">
+            <p class="teaser-names">${formatNames(previousResults)}</p>
+            <p>took this test. Take it to see how you compare.</p>
+          </div>
+        `
+      }
+
       const questionsHTML = currentTest.questions.map((q, i) => {
         const scale = Array.from({ length: q.scale }, (_, j) => j + 1)
-        
+
         return `
           <div class="question">
             <p><strong>Question ${i + 1}:</strong> ${q.text}</p>
             <div class="likert">
               ${scale.map(value => `
                 <label>
-                  <input type="radio" 
-                         name="q${i}" 
+                  <input type="radio"
+                         name="q${i}"
                          value="${value}"
                          onchange="setAnswer(${i}, ${value})">
                   ${value}
@@ -65,63 +114,141 @@
           </div>
         `
       }).join('')
-      
+
       document.getElementById('app').innerHTML = `
         <h1>Personality Test</h1>
+        ${teaserHTML}
         ${questionsHTML}
         <button onclick="submitTest()" id="submitBtn" disabled>
           Submit Answers
         </button>
       `
     }
-    
+
     function setAnswer(questionIndex, value) {
       answers[questionIndex] = value
-      
-      // Enable submit if all answered
+
       const allAnswered = answers.every(a => a !== null)
       document.getElementById('submitBtn').disabled = !allAnswered
     }
-    
+
     function submitTest() {
       const result = scoreTest(currentTest, answers)
       showResults(result)
     }
-    
+
     function showResults(result) {
-      const dimensionsHTML = currentTest.dimensions.map(dim => {
-        const score = result.scores[dim.name]
-        const [min, max] = dim.range
-        const percentage = ((score - min) / (max - min)) * 100
-        
-        return `
-          <div class="dimension">
-            <h3>${dim.name}</h3>
-            <p>Score: ${score.toFixed(1)}</p>
-            <div class="bar-container">
-              <div class="bar" style="width: ${percentage}%"></div>
+      let dimensionsHTML
+      const hasGroup = previousResults.length > 0
+
+      if (hasGroup) {
+        // Group comparison bars
+        const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }]
+
+        dimensionsHTML = currentTest.dimensions.map(dim => {
+          const [min, max] = dim.range
+          const range = max - min
+
+          const barsHTML = allPeople.map((person, pi) => {
+            const score = person.scores[dim.name] || 0
+            const percentage = Math.max(0, Math.min(100, ((score - min) / range) * 100))
+            const color = person.isYou ? GROUP_COLORS[0] : GROUP_COLORS[(pi % (GROUP_COLORS.length - 1)) + 1]
+            const label = person.isYou ? 'You' : escapeHTML(person.name)
+
+            return `
+              <div class="group-bar ${person.isYou ? 'group-you' : ''}">
+                <span class="group-label">${label}</span>
+                <div class="group-bar-track">
+                  <div class="group-bar-fill" style="width: ${percentage}%; background: ${color}"></div>
+                </div>
+                <span class="group-bar-value">${score.toFixed(1)}</span>
+              </div>
+            `
+          }).join('')
+
+          return `
+            <div class="group-dimension">
+              <h3>${dim.name}</h3>
+              ${barsHTML}
             </div>
-          </div>
-        `
-      }).join('')
-      
+          `
+        }).join('')
+      } else {
+        // Solo bars (original)
+        dimensionsHTML = currentTest.dimensions.map(dim => {
+          const score = result.scores[dim.name]
+          const [min, max] = dim.range
+          const percentage = ((score - min) / (max - min)) * 100
+
+          return `
+            <div class="dimension">
+              <h3>${dim.name}</h3>
+              <p>Score: ${score.toFixed(1)}</p>
+              <div class="bar-container">
+                <div class="bar" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          `
+        }).join('')
+      }
+
       // Character matching
       const matches = findBestMatches(currentTest, result.scores)
       let matchHTML = ''
-      
+
       if (matches && matches.length > 0) {
-        matchHTML = `
-          <div class="type-box">
-            <h2>You are most similar to:</h2>
-            ${matches.slice(0, 3).map((match, i) => `
-              <div class="match-result ${i === 0 ? 'match-top' : ''}">
-                <strong class="match-name">${i + 1}. ${match.name}</strong>
-                <span class="match-score">${match.similarity}% match</span>
+        if (hasGroup) {
+          // Group character matches
+          const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }]
+
+          const cardsHTML = allPeople.map(person => {
+            const personMatches = findBestMatches(currentTest, person.scores)
+            const topMatch = personMatches && personMatches.length > 0 ? personMatches[0] : null
+
+            return `
+              <div class="group-match-card ${person.isYou ? 'is-you' : ''}">
+                <strong>${person.isYou ? 'You' : escapeHTML(person.name)}</strong><br>
+                ${topMatch ? `${topMatch.name}<br><small>${topMatch.similarity}% match</small>` : 'N/A'}
               </div>
-            `).join('')}
-          </div>
-        `
+            `
+          }).join('')
+
+          matchHTML = `
+            <div class="type-box">
+              <h2>Character Matches</h2>
+              <div class="group-matches">
+                ${cardsHTML}
+              </div>
+            </div>
+          `
+        } else {
+          // Solo character matches (original)
+          matchHTML = `
+            <div class="type-box">
+              <h2>You are most similar to:</h2>
+              ${matches.slice(0, 3).map((match, i) => `
+                <div class="match-result ${i === 0 ? 'match-top' : ''}">
+                  <strong class="match-name">${i + 1}. ${match.name}</strong>
+                  <span class="match-score">${match.similarity}% match</span>
+                </div>
+              `).join('')}
+            </div>
+          `
+        }
       }
+
+      // Share box
+      const shareHTML = `
+        <div class="share-box">
+          <h2>Compare with friends</h2>
+          <input type="text" id="nameInput" placeholder="Your name" maxlength="30">
+          <button onclick="shareCompare()">Compare with me</button>
+          <div id="compareLink" class="compare-link" style="display:none">
+            <input type="text" id="compareLinkInput" readonly>
+            <button onclick="copyCompareLink()">Copy Link</button>
+          </div>
+        </div>
+      `
 
       document.getElementById('app').innerHTML = `
         <div class="results">
@@ -135,16 +262,52 @@
               <p>${result.interpretation}</p>
             </div>
           ` : ''}
-          
+
           <h2>Dimension Scores:</h2>
           ${dimensionsHTML}
-          
+
+          ${shareHTML}
+
           <button onclick="location.reload()">Take Again</button>
           <button onclick="location.href='create.html'">Create Your Own</button>
         </div>
       `
+
+      // Store result for share function
+      currentResult = result
     }
-    
+
+    let currentResult = null
+
+    function shareCompare() {
+      const name = document.getElementById('nameInput').value.trim()
+      if (!name) {
+        document.getElementById('nameInput').style.borderColor = '#E57373'
+        document.getElementById('nameInput').focus()
+        return
+      }
+
+      const newResults = [...previousResults, { name, scores: currentResult.scores }]
+      const payload = { test: currentTest, results: newResults }
+      const encoded = encodeTest(payload)
+      const url = window.location.origin + window.location.pathname + '#' + encoded
+
+      const linkContainer = document.getElementById('compareLink')
+      const linkInput = document.getElementById('compareLinkInput')
+      linkInput.value = url
+      linkContainer.style.display = 'flex'
+    }
+
+    function copyCompareLink() {
+      const linkInput = document.getElementById('compareLinkInput')
+      navigator.clipboard.writeText(linkInput.value).then(() => {
+        const btn = linkInput.nextElementSibling
+        const original = btn.textContent
+        btn.textContent = 'Copied!'
+        setTimeout(() => { btn.textContent = original }, 2000)
+      })
+    }
+
     // Load test on page load
     loadTest()
   </script>
