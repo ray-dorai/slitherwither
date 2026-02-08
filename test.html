@@ -111,28 +111,28 @@
       
       if (matches && matches.length > 0) {
         matchHTML = `
-          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <div class="type-box">
             <h2>You are most similar to:</h2>
             ${matches.slice(0, 3).map((match, i) => `
-              <div style="padding: 15px; margin: 10px 0; background: ${i === 0 ? '#e8f5e9' : '#f5f5f5'}; border-radius: 6px;">
-                <strong style="font-size: 1.2rem;">${i + 1}. ${match.name}</strong>
-                <span style="float: right; color: #0066cc; font-weight: bold;">${match.similarity}% match</span>
+              <div class="match-result ${i === 0 ? 'match-top' : ''}">
+                <strong class="match-name">${i + 1}. ${match.name}</strong>
+                <span class="match-score">${match.similarity}% match</span>
               </div>
             `).join('')}
           </div>
         `
       }
-      
+
       document.getElementById('app').innerHTML = `
         <div class="results">
           <h1>Your Results</h1>
-          
+
           ${matchHTML}
-          
+
           ${result.interpretation ? `
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <div class="type-box">
               <h2>Your Type:</h2>
-              <p style="font-size: 1.2rem;">${result.interpretation}</p>
+              <p>${result.interpretation}</p>
             </div>
           ` : ''}
           
