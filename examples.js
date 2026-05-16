@@ -1,4 +1,3 @@
-// examples.js - Built-in test examples for the editor
 const examples = {
   mbti: `dimension introversion
   range -10 to 10
@@ -63,22 +62,22 @@ question
 interpretation
   if introversion > 3
   if thinking > 3
-    You're an INTJ - The Architect: Strategic, logical, and independent. You excel at long-term planning and systems thinking.
+    The Architect: Strategic, logical, and independent. You excel at long-term planning and systems thinking.
 
 interpretation
   if introversion > 3
   if thinking < -3
-    You're an INFJ - The Advocate: Insightful, principled, and empathetic. You seek meaning and connection in everything.
+    The Advocate: Insightful, principled, and empathetic. You seek meaning and connection in everything.
 
 interpretation
   if introversion < -3
   if thinking > 3
-    You're an ENTJ - The Commander: Bold, decisive, and strategic. You're a natural leader who sees the big picture.
+    The Commander: Bold, decisive, and strategic. A natural leader who sees the big picture.
 
 interpretation
   if introversion < -3
   if thinking < -3
-    You're an ENFJ - The Protagonist: Charismatic, inspiring, and empathetic. You naturally bring out the best in others.`,
+    The Protagonist: Charismatic, inspiring, and empathetic. You naturally bring out the best in others.`,
 
   team: `dimension leadership
   range -10 to 10
@@ -143,27 +142,27 @@ question
 interpretation
   if leadership > 3
   if creativity > 3
-    You're an Innovator: You lead with vision and creativity, inspiring teams to think differently and embrace change.
+    The Innovator: You lead with vision and creativity, inspiring teams to think differently.
 
 interpretation
   if leadership > 3
   if detail_oriented > 3
-    You're a Coordinator: You organize teams and ensure quality, bringing structure to complex projects.
+    The Coordinator: You organize teams and ensure quality, bringing structure to complex projects.
 
 interpretation
   if creativity > 3
   if collaborative > 3
-    You're a Creator: You thrive in collaborative brainstorming, building on others' ideas to create something new.
+    The Creator: You thrive in collaborative brainstorming, building on others' ideas.
 
 interpretation
   if detail_oriented > 3
   if collaborative > 3
-    You're a Specialist: You excel at careful execution and quality assurance, making sure nothing falls through the cracks.
+    The Specialist: You excel at careful execution and quality assurance.
 
 interpretation
   if leadership < -3
   if collaborative > 3
-    You're a Supporter: You enable others to succeed, providing crucial assistance and maintaining team harmony.`,
+    The Supporter: You enable others to succeed, maintaining team harmony.`,
 
   learning: `dimension visual
   range -10 to 10
@@ -225,21 +224,21 @@ question
 interpretation
   if visual > 3
   if analytical > 3
-    You're a Visual Analyst: You excel at understanding complex systems through diagrams and structured thinking.
+    The Visual Analyst: You excel at understanding complex systems through diagrams and structured thinking.
 
 interpretation
   if visual > 3
   if practical > 3
-    You're a Visual Practitioner: You learn best by seeing demonstrations and then practicing the technique yourself.
+    The Visual Practitioner: You learn best by seeing demonstrations and then practicing.
 
 interpretation
   if analytical > 3
   if practical < -3
-    You're a Theoretical Thinker: You love understanding deep principles and building mental models before application.
+    The Theoretical Thinker: You love deep principles and mental models before application.
 
 interpretation
   if practical > 3
-    You're a Hands-On Learner: You learn by doing, experimenting, and getting immediate feedback from real experiences.`,
+    The Hands-On Learner: You learn by doing, experimenting, and getting immediate feedback.`,
 
   hogwarts: `dimension bravery
   range -10 to 10
