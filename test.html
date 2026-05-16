@@ -1,315 +1,393 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Take Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Take Test — SlitherWither</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
 </head>
 <body>
+
+<div class="scroll-progress"></div>
+
+<div class="wrap">
   <div id="app">
-    <div id="loading">Loading test...</div>
+    <div style="text-align: center; padding: 80px 0;">Loading test...</div>
   </div>
+</div>
 
-  <script src="parser.js"></script>
-  <script>
-    let currentTest = null
-    let previousResults = []
-    let answers = []
+<script src="parser.js"></script>
+<script src="glyph.js"></script>
+<script>
+  let currentTest = null;
+  let previousResults = [];
+  let answers = [];
+  let currentResult = null;
+  let glyphSeed = null;
 
-    const GROUP_COLORS = ['#9FB85E', '#FFB930', '#E57373', '#64B5F6', '#BA68C8', '#4DB6AC', '#FF8A65', '#A1887F']
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
 
-    function escapeHTML(str) {
-      const div = document.createElement('div')
-      div.textContent = str
-      return div.innerHTML
+  // Generate a per-person color using OKLCH hue rotation
+  function personColor(index, total, isYou) {
+    if (isYou) return 'oklch(45% 0.20 25)';
+    // Spread N participants evenly around the OKLCH hue wheel
+    const baseHue = 85;
+    const hue = (baseHue + (360 / Math.max(total, 1)) * index) % 360;
+    return `oklch(70% 0.16 ${hue})`;
+  }
+
+  function loadTest() {
+    const hash = window.location.hash.slice(1);
+
+    if (!hash) {
+      document.getElementById('app').innerHTML = `
+        <div class="card" style="text-align: center;">
+          <h2>No test found</h2>
+          <p><a href="create.html" class="btn">Create your own test</a></p>
+        </div>
+      `;
+      return;
     }
 
-    function loadTest() {
-      const hash = window.location.hash.slice(1)
-
-      if (!hash) {
-        document.getElementById('app').innerHTML = `
-          <div class="error">
-            <h2>No test found</h2>
-            <p><a href="create.html">Create your own test</a></p>
-          </div>
-        `
-        return
-      }
-
-      const decoded = decodeTest(hash)
-
-      if (!decoded) {
-        document.getElementById('app').innerHTML = `
-          <div class="error">
-            <h2>Invalid test link</h2>
-            <p><a href="create.html">Create your own test</a></p>
-          </div>
-        `
-        return
-      }
-
-      if (decoded.dimensions) {
-        // Old format: bare test object
-        currentTest = decoded
-        previousResults = []
-      } else if (decoded.test) {
-        // New format: test + group results
-        currentTest = decoded.test
-        previousResults = decoded.results || []
-      } else {
-        document.getElementById('app').innerHTML = `
-          <div class="error">
-            <h2>Invalid test link</h2>
-            <p><a href="create.html">Create your own test</a></p>
-          </div>
-        `
-        return
-      }
-
-      answers = new Array(currentTest.questions.length).fill(null)
-      renderTest()
+    const decoded = decodeTest(hash);
+    if (!decoded) {
+      document.getElementById('app').innerHTML = `
+        <div class="card" style="text-align: center;">
+          <h2>Invalid test link</h2>
+          <p><a href="create.html" class="btn">Create your own test</a></p>
+        </div>
+      `;
+      return;
     }
 
-    function formatNames(results) {
-      const names = results.map(r => escapeHTML(r.name))
-      if (names.length <= 3) {
-        if (names.length === 1) return names[0]
-        if (names.length === 2) return names[0] + ' and ' + names[1]
-        return names[0] + ', ' + names[1] + ', and ' + names[2]
-      }
-      const shown = names.slice(0, 3).join(', ')
-      const others = names.length - 3
-      return shown + ', and ' + others + ' other' + (others > 1 ? 's' : '')
+    if (decoded.dimensions) {
+      currentTest = decoded;
+      previousResults = [];
+    } else if (decoded.test) {
+      currentTest = decoded.test;
+      previousResults = decoded.results || [];
+    } else {
+      document.getElementById('app').innerHTML = `<div class="card">Invalid test link</div>`;
+      return;
     }
 
-    function renderTest() {
-      let teaserHTML = ''
-      if (previousResults.length > 0) {
-        teaserHTML = `
-          <div class="teaser">
-            <p class="teaser-names">${formatNames(previousResults)}</p>
-            <p>took this test. Take it to see how you compare.</p>
-          </div>
-        `
-      }
+    glyphSeed = seedFromTest(currentTest);
+    answers = new Array(currentTest.questions.length).fill(null);
+    renderTest();
+  }
 
-      const questionsHTML = currentTest.questions.map((q, i) => {
-        const scale = Array.from({ length: q.scale }, (_, j) => j + 1)
+  function formatNames(results) {
+    const names = results.map(r => escapeHTML(r.name));
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names[0] + ' and ' + names[1];
+    if (names.length === 3) return names[0] + ', ' + names[1] + ', and ' + names[2];
+    return names.slice(0, 3).join(', ') + `, and ${names.length - 3} other${names.length - 3 > 1 ? 's' : ''}`;
+  }
+
+  function renderTest() {
+    const sigil = sigilName(glyphSeed);
+    const glyphPreview = renderGlyphSVG(glyphSeed);
+
+    let teaserHTML = '';
+    if (previousResults.length > 0) {
+      teaserHTML = `
+        <div class="teaser">
+          <p class="teaser-names">${formatNames(previousResults)}</p>
+          <p>took this test. Take it to see how you compare.</p>
+        </div>
+      `;
+    }
+
+    const questionsHTML = currentTest.questions.map((q, i) => {
+      const scale = Array.from({ length: q.scale }, (_, j) => j + 1);
+      return `
+        <div class="question">
+          <div class="question-number">QUESTION ${i + 1} OF ${currentTest.questions.length}</div>
+          <div class="question-text">${escapeHTML(q.text)}</div>
+          <div class="likert">
+            ${scale.map(value => `
+              <label>
+                <input type="radio" name="q${i}" value="${value}" onchange="setAnswer(${i}, ${value})">
+                ${value}
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('app').innerHTML = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 10px; opacity: 0.6;">${glyphPreview}</div>
+        <h1>The ${escapeHTML(sigil)} Test</h1>
+        <p style="opacity: 0.7;">Answer honestly. Your result comes with a unique sigil.</p>
+      </div>
+      ${teaserHTML}
+      ${questionsHTML}
+      <div style="text-align: center; margin-top: 30px;">
+        <button onclick="submitTest()" id="submitBtn" disabled style="font-size: 1.1rem; padding: 16px 40px;">
+          Reveal My Sigil →
+        </button>
+      </div>
+    `;
+  }
+
+  function setAnswer(questionIndex, value) {
+    answers[questionIndex] = value;
+    document.getElementById('submitBtn').disabled = !answers.every(a => a !== null);
+  }
+
+  function submitTest() {
+    currentResult = scoreTest(currentTest, answers);
+    showResults(currentResult);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showResults(result) {
+    const sigil = sigilName(glyphSeed);
+    const glyphSVG = renderGlyphSVG(glyphSeed);
+    const hasGroup = previousResults.length > 0;
+
+    // ===== Build dimension bars =====
+    let dimensionsHTML;
+
+    if (hasGroup) {
+      const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }];
+
+      dimensionsHTML = currentTest.dimensions.map(dim => {
+        const [min, max] = dim.range;
+        const range = max - min;
+        const tooltipId = `tip-${dim.name}-${Math.random().toString(36).slice(2, 7)}`;
+        const anchorName = `--anchor-${dim.name.replace(/[^a-z0-9]/gi, '')}`;
+
+        const barsHTML = allPeople.map((person, pi) => {
+          const score = person.scores[dim.name] || 0;
+          const percentage = Math.max(0, Math.min(100, ((score - min) / range) * 100));
+          const color = personColor(pi, allPeople.length, person.isYou);
+          const label = person.isYou ? 'You' : escapeHTML(person.name);
+
+          return `
+            <div class="group-bar ${person.isYou ? 'is-you' : ''}">
+              <span class="group-label">${label}</span>
+              <div class="group-bar-track">
+                <div class="group-bar-fill" style="width: ${percentage}%; background: ${color};"></div>
+              </div>
+              <span class="group-bar-value">${score.toFixed(1)}</span>
+            </div>
+          `;
+        }).join('');
 
         return `
-          <div class="question">
-            <p><strong>Question ${i + 1}:</strong> ${q.text}</p>
-            <div class="likert">
-              ${scale.map(value => `
-                <label>
-                  <input type="radio"
-                         name="q${i}"
-                         value="${value}"
-                         onchange="setAnswer(${i}, ${value})">
-                  ${value}
-                </label>
-              `).join('')}
+          <div class="group-dimension result-section">
+            <h3 style="position: relative;">
+              <span class="dim-name" style="anchor-name: ${anchorName};" tabindex="0">${escapeHTML(dim.name)}</span>
+              ${dim.description ? `<span class="dim-tooltip" style="position-anchor: ${anchorName};">${escapeHTML(dim.description)}</span>` : ''}
+            </h3>
+            ${barsHTML}
+          </div>
+        `;
+      }).join('');
+    } else {
+      dimensionsHTML = currentTest.dimensions.map(dim => {
+        const score = result.scores[dim.name];
+        const [min, max] = dim.range;
+        const percentage = ((score - min) / (max - min)) * 100;
+        const anchorName = `--anchor-${dim.name.replace(/[^a-z0-9]/gi, '')}`;
+
+        return `
+          <div class="dimension result-section">
+            <div class="dim-header" style="position: relative;">
+              <span class="dim-name" style="anchor-name: ${anchorName};" tabindex="0">${escapeHTML(dim.name)}</span>
+              ${dim.description ? `<span class="dim-tooltip" style="position-anchor: ${anchorName};">${escapeHTML(dim.description)}</span>` : ''}
+              <span class="dim-score">${score.toFixed(1)}</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar" style="width: ${percentage}%"></div>
             </div>
           </div>
-        `
-      }).join('')
-
-      document.getElementById('app').innerHTML = `
-        <h1>Personality Test</h1>
-        ${teaserHTML}
-        ${questionsHTML}
-        <button onclick="submitTest()" id="submitBtn" disabled>
-          Submit Answers
-        </button>
-      `
+        `;
+      }).join('');
     }
 
-    function setAnswer(questionIndex, value) {
-      answers[questionIndex] = value
+    // ===== Character matches =====
+    const matches = findBestMatches(currentTest, result.scores);
+    let matchHTML = '';
 
-      const allAnswered = answers.every(a => a !== null)
-      document.getElementById('submitBtn').disabled = !allAnswered
-    }
-
-    function submitTest() {
-      const result = scoreTest(currentTest, answers)
-      showResults(result)
-    }
-
-    function showResults(result) {
-      let dimensionsHTML
-      const hasGroup = previousResults.length > 0
-
+    if (matches && matches.length > 0) {
       if (hasGroup) {
-        // Group comparison bars
-        const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }]
-
-        dimensionsHTML = currentTest.dimensions.map(dim => {
-          const [min, max] = dim.range
-          const range = max - min
-
-          const barsHTML = allPeople.map((person, pi) => {
-            const score = person.scores[dim.name] || 0
-            const percentage = Math.max(0, Math.min(100, ((score - min) / range) * 100))
-            const color = person.isYou ? GROUP_COLORS[0] : GROUP_COLORS[(pi % (GROUP_COLORS.length - 1)) + 1]
-            const label = person.isYou ? 'You' : escapeHTML(person.name)
-
-            return `
-              <div class="group-bar ${person.isYou ? 'group-you' : ''}">
-                <span class="group-label">${label}</span>
-                <div class="group-bar-track">
-                  <div class="group-bar-fill" style="width: ${percentage}%; background: ${color}"></div>
-                </div>
-                <span class="group-bar-value">${score.toFixed(1)}</span>
-              </div>
-            `
-          }).join('')
-
+        const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }];
+        const cardsHTML = allPeople.map(person => {
+          const personMatches = findBestMatches(currentTest, person.scores);
+          const top = personMatches && personMatches[0];
           return `
-            <div class="group-dimension">
-              <h3>${dim.name}</h3>
-              ${barsHTML}
+            <div class="match-card ${person.isYou ? 'is-you' : ''}">
+              <strong class="match-name">${person.isYou ? 'You' : escapeHTML(person.name)}</strong>
+              ${top ? `<span class="match-score">${escapeHTML(top.name)} · ${top.similarity}%</span>` : ''}
             </div>
-          `
-        }).join('')
-      } else {
-        // Solo bars (original)
-        dimensionsHTML = currentTest.dimensions.map(dim => {
-          const score = result.scores[dim.name]
-          const [min, max] = dim.range
-          const percentage = ((score - min) / (max - min)) * 100
+          `;
+        }).join('');
 
-          return `
-            <div class="dimension">
-              <h3>${dim.name}</h3>
-              <p>Score: ${score.toFixed(1)}</p>
-              <div class="bar-container">
-                <div class="bar" style="width: ${percentage}%"></div>
-              </div>
-            </div>
-          `
-        }).join('')
-      }
-
-      // Character matching
-      const matches = findBestMatches(currentTest, result.scores)
-      let matchHTML = ''
-
-      if (matches && matches.length > 0) {
-        if (hasGroup) {
-          // Group character matches
-          const allPeople = [...previousResults, { name: 'You', scores: result.scores, isYou: true }]
-
-          const cardsHTML = allPeople.map(person => {
-            const personMatches = findBestMatches(currentTest, person.scores)
-            const topMatch = personMatches && personMatches.length > 0 ? personMatches[0] : null
-
-            return `
-              <div class="group-match-card ${person.isYou ? 'is-you' : ''}">
-                <strong>${person.isYou ? 'You' : escapeHTML(person.name)}</strong><br>
-                ${topMatch ? `${topMatch.name}<br><small>${topMatch.similarity}% match</small>` : 'N/A'}
-              </div>
-            `
-          }).join('')
-
-          matchHTML = `
-            <div class="type-box">
-              <h2>Character Matches</h2>
-              <div class="group-matches">
-                ${cardsHTML}
-              </div>
-            </div>
-          `
-        } else {
-          // Solo character matches (original)
-          matchHTML = `
-            <div class="type-box">
-              <h2>You are most similar to:</h2>
-              ${matches.slice(0, 3).map((match, i) => `
-                <div class="match-result ${i === 0 ? 'match-top' : ''}">
-                  <strong class="match-name">${i + 1}. ${match.name}</strong>
-                  <span class="match-score">${match.similarity}% match</span>
-                </div>
-              `).join('')}
-            </div>
-          `
-        }
-      }
-
-      // Share box
-      const shareHTML = `
-        <div class="share-box">
-          <h2>Compare with friends</h2>
-          <input type="text" id="nameInput" placeholder="Your name" maxlength="30">
-          <button onclick="shareCompare()">Compare with me</button>
-          <div id="compareLink" class="compare-link" style="display:none">
-            <input type="text" id="compareLinkInput" readonly>
-            <button onclick="copyCompareLink()">Copy Link</button>
+        matchHTML = `
+          <div class="result-section">
+            <h2 style="text-align: center;">Character Matches</h2>
+            <div class="match-grid">${cardsHTML}</div>
           </div>
-        </div>
-      `
-
-      document.getElementById('app').innerHTML = `
-        <div class="results">
-          <h1>Your Results</h1>
-
-          ${matchHTML}
-
-          ${result.interpretation ? `
-            <div class="type-box">
-              <h2>Your Type:</h2>
-              <p>${result.interpretation}</p>
-            </div>
-          ` : ''}
-
-          <h2>Dimension Scores:</h2>
-          ${dimensionsHTML}
-
-          ${shareHTML}
-
-          <button onclick="location.reload()">Take Again</button>
-          <button onclick="location.href='create.html'">Create Your Own</button>
-        </div>
-      `
-
-      // Store result for share function
-      currentResult = result
-    }
-
-    let currentResult = null
-
-    function shareCompare() {
-      const name = document.getElementById('nameInput').value.trim()
-      if (!name) {
-        document.getElementById('nameInput').style.borderColor = '#E57373'
-        document.getElementById('nameInput').focus()
-        return
+        `;
+      } else {
+        const top3 = matches.slice(0, 3);
+        const cardsHTML = top3.map((m, i) => `
+          <div class="match-card ${i === 0 ? 'is-top' : ''}">
+            <strong class="match-name">${i + 1}. ${escapeHTML(m.name)}</strong>
+            <span class="match-score">${m.similarity}% match</span>
+          </div>
+        `).join('');
+        matchHTML = `
+          <div class="result-section">
+            <h2 style="text-align: center;">Closest Matches</h2>
+            <div class="match-grid">${cardsHTML}</div>
+          </div>
+        `;
       }
-
-      const newResults = [...previousResults, { name, scores: currentResult.scores }]
-      const payload = { test: currentTest, results: newResults }
-      const encoded = encodeTest(payload)
-      const url = window.location.origin + window.location.pathname + '#' + encoded
-
-      const linkContainer = document.getElementById('compareLink')
-      const linkInput = document.getElementById('compareLinkInput')
-      linkInput.value = url
-      linkContainer.style.display = 'flex'
     }
 
-    function copyCompareLink() {
-      const linkInput = document.getElementById('compareLinkInput')
-      navigator.clipboard.writeText(linkInput.value).then(() => {
-        const btn = linkInput.nextElementSibling
-        const original = btn.textContent
-        btn.textContent = 'Copied!'
-        setTimeout(() => { btn.textContent = original }, 2000)
+    // ===== Mini bars for the share card preview =====
+    const topDims = currentTest.dimensions
+      .map(d => {
+        const [min, max] = d.range;
+        const s = result.scores[d.name] || 0;
+        const pct = ((s - min) / (max - min)) * 100;
+        return { name: d.name, score: s, pct };
       })
-    }
+      .sort((a, b) => Math.abs(b.score) - Math.abs(a.score))
+      .slice(0, 4);
 
-    // Load test on page load
-    loadTest()
-  </script>
+    const miniBarsHTML = topDims.map(d => `
+      <div class="share-card-mini-bar">
+        <span class="lbl">${escapeHTML(d.name)}</span>
+        <div class="trk"><div class="fl" style="width: ${d.pct}%"></div></div>
+      </div>
+    `).join('');
+
+    // ===== Render results page =====
+    document.getElementById('app').innerHTML = `
+      <div class="result-hero">
+        <h1>Your Result</h1>
+      </div>
+
+      <!-- THE SHAREABLE CARD (matches what gets exported as PNG) -->
+      <div class="share-card" id="shareCard">
+        <div class="glyph-wrap">${glyphSVG}</div>
+        <div class="share-card-title">${escapeHTML(sigil)}</div>
+        <div class="share-card-type">${escapeHTML(result.interpretation.split(':')[0] || 'Unique')}</div>
+        <p style="max-width: 480px; margin: 0 auto 20px;">${escapeHTML(result.interpretation)}</p>
+        <div class="share-card-mini-bars">${miniBarsHTML}</div>
+        <div class="share-card-footer">🐍 slitherwither</div>
+      </div>
+
+      <div class="share-actions">
+        <button onclick="downloadCard()" class="btn-primary">📥 Download as Image</button>
+        <button onclick="shareCard()">📤 Share</button>
+        <button onclick="copyLink()">🔗 Copy Link</button>
+      </div>
+
+      ${matchHTML}
+
+      <div class="result-section">
+        <h2 style="text-align: center; margin-top: 20px;">Dimension Scores</h2>
+        ${dimensionsHTML}
+      </div>
+
+      <!-- Compare with friends -->
+      <div class="compare-box result-section">
+        <h2>Compare with Friends</h2>
+        <p>Add your name and share a new link so friends can compare against your scores.</p>
+        <input type="text" id="nameInput" placeholder="Your name" maxlength="30">
+        <button onclick="generateCompareLink()">Generate Compare Link</button>
+        <div id="compareLink" class="compare-link-row" style="display:none">
+          <input type="text" id="compareLinkInput" readonly>
+          <button onclick="copyCompareLink()">Copy</button>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 40px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button onclick="location.reload()">Take Again</button>
+        <a href="create.html" class="btn">Create Your Own Test</a>
+      </div>
+    `;
+  }
+
+  // ===== Share actions =====
+
+  async function downloadCard() {
+    const userName = document.getElementById('nameInput')?.value.trim() || 'You';
+    try {
+      await downloadShareCard({
+        test: currentTest,
+        scores: currentResult.scores,
+        interpretation: currentResult.interpretation,
+        glyphSeed,
+        userName
+      });
+    } catch (e) {
+      alert('Could not generate image: ' + e.message);
+    }
+  }
+
+  async function shareCard() {
+    const userName = document.getElementById('nameInput')?.value.trim() || 'You';
+    try {
+      await shareCardWithNativeShare({
+        test: currentTest,
+        scores: currentResult.scores,
+        interpretation: currentResult.interpretation,
+        glyphSeed,
+        userName
+      });
+    } catch (e) {
+      alert('Share failed: ' + e.message);
+    }
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('Test link copied to clipboard!');
+    });
+  }
+
+  function generateCompareLink() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) {
+      const input = document.getElementById('nameInput');
+      input.style.borderColor = 'oklch(60% 0.20 25)';
+      input.focus();
+      return;
+    }
+    const newResults = [...previousResults, { name, scores: currentResult.scores }];
+    const payload = { test: currentTest, results: newResults };
+    const encoded = encodeTest(payload);
+    const url = window.location.origin + window.location.pathname + '#' + encoded;
+
+    document.getElementById('compareLinkInput').value = url;
+    document.getElementById('compareLink').style.display = 'flex';
+  }
+
+  function copyCompareLink() {
+    const input = document.getElementById('compareLinkInput');
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = input.nextElementSibling;
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    });
+  }
+
+  loadTest();
+</script>
+
 </body>
 </html>
