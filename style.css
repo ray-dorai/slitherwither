@@ -1,247 +1,378 @@
-/* style.css */
+/* ============================================================
+   SlitherWither — 2026 redesign
+   ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Solway:wght@300;400;500;700;800&display=swap');
 
+:root {
+  /* Single brand seed — every other color derives from this. */
+  --brand:         oklch(78% 0.16 85);                              /* mustard */
+  --brand-light:   oklch(from var(--brand) calc(l + 0.10) c h);
+  --brand-dark:    oklch(from var(--brand) calc(l - 0.32) c h);
+  --brand-muted:   oklch(from var(--brand) l calc(c * 0.30) h);
+
+  --sage:          oklch(75% 0.12 130);
+  --orange:        oklch(78% 0.16 60);
+  --pink:          oklch(92% 0.04 330);
+  --paper:         oklch(97% 0.03 90);
+  --ink:           oklch(15% 0.02 50);
+
+  --bg:            var(--brand);
+  --shadow:        6px 6px 0 var(--ink);
+  --shadow-sm:     3px 3px 0 var(--ink);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
   font-family: "Solway", serif;
   font-weight: 400;
-  font-style: normal;
   line-height: 1.6;
-  color: #0D0000;
-  background-color: #FFD26A;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+  color: var(--ink);
+  background: var(--bg);
   font-size: 18px;
+  min-height: 100vh;
 }
 
-.hero {
-  text-align: center;
-  padding: 60px 20px;
-}
+.wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
 
-h1 {
-  font-family: "Righteous", sans-serif;
-  font-weight: 400;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
+/* ============================================================
+   Typography
+   ============================================================ */
+h1, h2, h3 { font-family: "Righteous", sans-serif; font-weight: 400; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.8rem; }
+h2 { font-size: 1.6rem; margin-bottom: 0.6rem; }
+h3 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+p  { margin-bottom: 1rem; }
+code { font-family: ui-monospace, "SF Mono", monospace; background: var(--paper); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid var(--ink); }
 
-h2, h3 {
-  font-family: "Righteous", sans-serif;
-  font-weight: 400;
-  line-height: 1.2;
-}
+/* ============================================================
+   View Transitions across pages (small static MPA → animated)
+   ============================================================ */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 0.35s; }
 
-p {
-  font-size: 1.2rem;
-  color: #0D0000;
-  margin-bottom: 2rem;
+/* ============================================================
+   Scroll progress bar — pure CSS
+   ============================================================ */
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 5px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+  z-index: 100;
+  animation: scaleX linear;
+  animation-timeline: scroll(root);
 }
+@keyframes scaleX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-.btn-primary {
-  display: inline-block;
-  background: #9FB85E;
-  color: #0D0000;
-  padding: 12px 32px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-family: "Righteous", sans-serif;
-}
-
-.btn-primary:hover {
-  background: #FFB930;
-}
-
-textarea {
-  width: 100%;
-  padding: 12px;
-  font-family: "Solway", serif;
-  font-weight: 400;
-  font-size: 16px;
-  border: 2px solid #9FB85E;
-  border-radius: 4px;
-  resize: vertical;
-  background: white;
-  color: #0D0000;
-}
-
-button {
-  background: #9FB85E;
-  color: #0D0000;
-  border: none;
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn, button {
+  background: var(--sage);
+  color: var(--ink);
+  border: 2px solid var(--ink);
   padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 1rem;
+  border-radius: 8px;
   font-family: "Righteous", sans-serif;
-  font-weight: 400;
-}
-
-button:hover {
-  background: #FFB930;
-}
-
-button:disabled {
-  background: #FFD0FF;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.question {
-  background: #FFD0FF;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 8px;
-}
-
-.likert {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.likert label {
-  flex: 1;
-  text-align: center;
-}
-
-.likert input[type="radio"] {
-  display: block;
-  margin: 8px auto;
+  font-size: 1rem;
   cursor: pointer;
-  width: 20px;
-  height: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn:hover, button:hover {
+  background: var(--orange);
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.btn:active, button:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+button:disabled {
+  background: var(--brand-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary { background: var(--sage); font-size: 1.1rem; padding: 14px 32px; }
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero { text-align: center; padding: 60px 20px 40px; }
+.hero h1 { view-transition-name: hero-title; }
+.hero .tagline { font-size: 1.2rem; opacity: 0.85; max-width: 540px; margin: 0 auto 2rem; }
+
+/* ============================================================
+   Cards & sections
+   ============================================================ */
+.section { margin-top: 60px; }
+
+.card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
 }
 
-.results {
-  background: #FFD0FF;
-  padding: 30px;
-  border-radius: 8px;
-  margin-top: 30px;
-}
-
-.dimension {
-  margin: 20px 0;
-}
-
-.bar-container {
-  background: #FFD0FF;
-  height: 30px;
-  border-radius: 15px;
-  overflow: hidden;
-  position: relative;
-}
-
-.bar {
-  background: linear-gradient(90deg, #9FB85E, #FFB930);
-  height: 100%;
-  transition: width 0.5s ease;
-}
-
-.error {
-  background: #FFD0FF;
-  color: #0D0000;
-  padding: 12px;
-  border-radius: 4px;
-  margin: 10px 0;
-  border: 2px solid #FFB930;
-}
-
-.section {
-  margin-top: 60px;
-  text-align: left;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
 }
 
 .section-cta {
   margin-top: 60px;
   padding: 40px;
-  background: #f5f5f5;
-  border-radius: 8px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
   text-align: center;
+  box-shadow: var(--shadow);
 }
 
-.grid {
-  display: grid;
-  gap: 20px;
+/* ============================================================
+   Editor (create.html)
+   ============================================================ */
+textarea {
+  width: 100%;
+  padding: 16px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 14px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.example-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.example-buttons button {
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.error {
+  background: oklch(85% 0.10 30);
+  color: var(--ink);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 12px 0;
+  border: 2px solid var(--ink);
+}
+
+.share-link-box {
+  background: oklch(90% 0.08 140);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 20px;
   margin-top: 20px;
+  box-shadow: var(--shadow-sm);
 }
-
-.card {
-  border: 2px solid #ddd;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.type-box {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.match-result {
-  padding: 15px;
+.share-link-box input[type="text"] {
+  width: 100%;
+  padding: 12px;
   margin: 10px 0;
-  background: #f5f5f5;
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  border: 2px solid var(--ink);
   border-radius: 6px;
+  background: var(--paper);
 }
 
-.match-top {
-  background: #e8f5e9;
+/* ============================================================
+   Test taking — staggered question reveal with sibling-index()
+   ============================================================ */
+.question {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 22px;
+  margin: 18px 0;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  /* 2026 CSS: stagger via sibling-index() */
+  animation: questionRise 0.5s ease both;
+  animation-delay: calc(60ms * sibling-index());
+}
+@keyframes questionRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.match-name {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.match-score {
-  float: right;
-  color: #0066cc;
-  font-weight: bold;
-}
-
-.teaser {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.teaser p {
-  margin-bottom: 0;
-}
-
-.teaser .teaser-names {
+.question-number {
   font-family: "Righteous", sans-serif;
-  font-size: 1.3rem;
-  margin-bottom: 0.5rem;
-}
-
-.group-dimension {
-  margin: 20px 0;
-}
-
-.group-dimension h3 {
+  font-size: 0.85rem;
+  color: var(--brand-dark);
+  letter-spacing: 0.1em;
   margin-bottom: 8px;
 }
+.question-text {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
 
+.likert {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.likert label {
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  padding: 10px 4px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--bg);
+  transition: background 0.15s, transform 0.1s;
+  font-family: "Righteous", sans-serif;
+}
+.likert label:hover { background: var(--orange); }
+.likert label:has(input:checked) {
+  background: var(--sage);
+  transform: scale(1.05);
+}
+.likert input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Results — the centerpiece
+   ============================================================ */
+.results-page { padding-top: 20px; }
+
+.result-hero {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Each result section reveals on scroll */
+.result-section {
+  margin-top: 32px;
+  animation: sectionRise linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 50%;
+}
+@keyframes sectionRise {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Interpretation card with organic clip-path: shape()
+   ============================================================ */
+.interp-card {
+  background: var(--sage);
+  border: 3px solid var(--ink);
+  padding: 40px 36px;
+  margin: 20px 0;
+  position: relative;
+  box-shadow: var(--shadow);
+  border-radius: 24px 80px 24px 80px / 80px 24px 80px 24px;
+}
+.interp-card h2 { font-size: 1.3rem; margin-bottom: 12px; }
+.interp-card p { font-size: 1.15rem; margin: 0; }
+
+/* ============================================================
+   Dimension bars with anchor-positioned tooltips
+   ============================================================ */
+.dimension {
+  margin: 20px 0;
+  padding: 18px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+}
+.dim-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.dim-name {
+  font-family: "Righteous", sans-serif;
+  font-size: 1.05rem;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+.dim-score { font-family: ui-monospace, monospace; font-weight: 700; }
+
+.bar-container {
+  background: var(--bg);
+  height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+.bar {
+  height: 100%;
+  background: var(--brand);
+  transition: width 0.8s cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+/* Anchor-positioned tooltip on dimension hover */
+.dim-name { anchor-name: var(--dim-anchor); }
+.dim-tooltip {
+  position: absolute;
+  position-anchor: var(--dim-anchor);
+  position-area: top;
+  margin-bottom: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  width: max-content;
+  max-width: 240px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  position-try-fallbacks: flip-block;
+  z-index: 10;
+}
+.dim-name:hover + .dim-tooltip,
+.dim-name:focus + .dim-tooltip { opacity: 1; }
+
+/* ============================================================
+   Group comparison — uses OKLCH-derived per-person colors
+   ============================================================ */
+.group-dimension { margin: 18px 0; padding: 16px; background: var(--paper); border: 2px solid var(--ink); border-radius: 10px; }
 .group-bar {
   display: flex;
   align-items: center;
   margin: 6px 0;
   gap: 10px;
 }
-
+.group-bar.is-you .group-label { font-weight: 700; }
+.group-bar.is-you .group-label::before { content: "★ "; }
 .group-label {
-  width: 120px;
+  width: 100px;
   flex-shrink: 0;
   font-size: 0.9rem;
   text-align: right;
@@ -249,85 +380,131 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .group-bar-track {
   flex: 1;
-  background: #eee;
-  height: 22px;
-  border-radius: 11px;
+  background: var(--bg);
+  height: 20px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
   overflow: hidden;
 }
+.group-bar-fill { height: 100%; transition: width 0.6s ease; }
+.group-bar-value { width: 44px; flex-shrink: 0; font-size: 0.85rem; font-family: ui-monospace, monospace; font-weight: 700; }
 
-.group-bar-fill {
-  height: 100%;
-  border-radius: 11px;
-  transition: width 0.5s ease;
-}
-
-.group-bar-value {
-  width: 40px;
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.group-you .group-label {
-  font-weight: bold;
-}
-
-.share-box {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 24px;
-  text-align: center;
-}
-
-.share-box h2 {
-  margin-bottom: 12px;
-}
-
-.share-box input[type="text"] {
-  padding: 10px 14px;
-  font-size: 16px;
-  border: 2px solid #9FB85E;
-  border-radius: 6px;
-  font-family: "Solway", serif;
-  width: 200px;
-  margin-right: 8px;
-}
-
-.compare-link {
-  margin-top: 16px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.compare-link input[type="text"] {
-  flex: 1;
-  padding: 10px 14px;
-  font-size: 14px;
-  border: 2px solid #9FB85E;
-  border-radius: 6px;
-  font-family: "Solway", serif;
-  background: #f9f9f9;
-}
-
-.group-matches {
+/* ============================================================
+   Character matches grid (native masonry)
+   ============================================================ */
+.match-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-rows: masonry;
   gap: 12px;
-  margin-top: 12px;
 }
-
-.group-match-card {
-  background: #f5f5f5;
-  padding: 12px;
-  border-radius: 6px;
+.match-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 16px;
   text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.match-card.is-top { background: var(--sage); }
+.match-card.is-you { background: var(--orange); }
+.match-name { font-family: "Righteous", sans-serif; font-size: 1rem; display: block; margin-bottom: 4px; }
+.match-score { font-family: ui-monospace, monospace; font-size: 0.85rem; opacity: 0.8; }
+
+/* ============================================================
+   The shareable result card (also rendered to PNG)
+   ============================================================ */
+.share-card {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 32px;
+  margin: 32px 0;
+  box-shadow: var(--shadow);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.share-card .glyph-wrap {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 16px;
+}
+.share-card .glyph-wrap svg { width: 100%; height: 100%; }
+.share-card-title { font-family: "Righteous", sans-serif; font-size: 1.4rem; margin-bottom: 4px; }
+.share-card-type  { font-family: "Righteous", sans-serif; font-size: 1.1rem; color: var(--brand-dark); margin-bottom: 16px; }
+.share-card-mini-bars { display: flex; flex-direction: column; gap: 6px; max-width: 340px; margin: 0 auto 18px; }
+.share-card-mini-bar { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+.share-card-mini-bar .lbl { width: 110px; text-align: right; opacity: 0.8; }
+.share-card-mini-bar .trk { flex: 1; height: 10px; background: var(--bg); border: 1.5px solid var(--ink); border-radius: 5px; overflow: hidden; }
+.share-card-mini-bar .fl  { height: 100%; background: var(--brand-dark); }
+.share-card-footer { font-size: 0.75rem; opacity: 0.6; font-family: ui-monospace, monospace; margin-top: 12px; }
+
+.share-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 24px 0;
 }
 
-.group-match-card.is-you {
-  background: #e8f5e9;
+/* ============================================================
+   Share box for "compare with friends"
+   ============================================================ */
+.compare-box {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 24px;
+  margin-top: 32px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.compare-box input[type="text"] {
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  font-family: "Solway", serif;
+  margin: 8px;
+  min-width: 200px;
+}
+.compare-link-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.compare-link-row input { flex: 1; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+
+/* ============================================================
+   Teaser at top of test when friends have already taken it
+   ============================================================ */
+.teaser {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.teaser-names { font-family: "Righteous", sans-serif; font-size: 1.2rem; margin-bottom: 6px; }
+.teaser p { margin: 0; }
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width: 600px) {
+  .likert label { padding: 8px 2px; font-size: 0.9rem; }
+  .group-label { width: 80px; font-size: 0.8rem; }
+  .share-card { padding: 24px 16px; }
+  .share-actions { flex-direction: column; align-items: stretch; }
 }
