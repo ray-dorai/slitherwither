@@ -1,201 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Create Test - SlitherWither</title>
+  <title>Create Test — SlitherWither</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
 </head>
 <body>
+
+<div class="scroll-progress"></div>
+
+<div class="wrap">
+  <p><a href="index.html" style="opacity: 0.7;">← back</a></p>
   <h1>Create Your Test</h1>
-  
-  <div class="editor">
-    <div style="margin-bottom: 20px;">
-      <strong>Load example:</strong>
-      <button onclick="loadExample('mbti')">Myers-Briggs Style</button>
+
+  <div class="card" style="margin-top: 20px;">
+    <h3>Load an example:</h3>
+    <div class="example-buttons">
+      <button onclick="loadExample('mbti')">Myers-Briggs</button>
       <button onclick="loadExample('team')">Team Roles</button>
       <button onclick="loadExample('learning')">Learning Styles</button>
       <button onclick="loadExample('hogwarts')">Hogwarts Houses</button>
     </div>
-
-    <h3>Test Definition</h3>
-    <textarea id="definition" rows="25" placeholder="Start typing or load an example...">dimension extraversion
-  range -25 to 25
-
-dimension agreeableness
-  range -25 to 25
-
-dimension conscientiousness
-  range -25 to 25
-
-dimension emotional_stability
-  range -25 to 25
-
-dimension intellect
-  range -25 to 25
-
-question
-  text "Am the life of the party"
-  scale 1 to 5
-  scoring
-    extraversion +1
-
-question
-  text "Feel comfortable around people"
-  scale 1 to 5
-  scoring
-    extraversion +1
-
-question
-  text "Don't talk a lot"
-  scale 1 to 5
-  scoring
-    extraversion -1
-
-question
-  text "Keep in the background"
-  scale 1 to 5
-  scoring
-    extraversion -1
-
-question
-  text "Am interested in people"
-  scale 1 to 5
-  scoring
-    agreeableness +1
-
-question
-  text "Sympathize with others' feelings"
-  scale 1 to 5
-  scoring
-    agreeableness +1
-
-question
-  text "Am not really interested in others"
-  scale 1 to 5
-  scoring
-    agreeableness -1
-
-question
-  text "Insult people"
-  scale 1 to 5
-  scoring
-    agreeableness -1
-
-question
-  text "Am always prepared"
-  scale 1 to 5
-  scoring
-    conscientiousness +1
-
-question
-  text "Pay attention to details"
-  scale 1 to 5
-  scoring
-    conscientiousness +1
-
-question
-  text "Leave my belongings around"
-  scale 1 to 5
-  scoring
-    conscientiousness -1
-
-question
-  text "Make a mess of things"
-  scale 1 to 5
-  scoring
-    conscientiousness -1
-
-question
-  text "Am relaxed most of the time"
-  scale 1 to 5
-  scoring
-    emotional_stability +1
-
-question
-  text "Seldom feel blue"
-  scale 1 to 5
-  scoring
-    emotional_stability +1
-
-question
-  text "Get stressed out easily"
-  scale 1 to 5
-  scoring
-    emotional_stability -1
-
-question
-  text "Worry about things"
-  scale 1 to 5
-  scoring
-    emotional_stability -1
-
-question
-  text "Have a rich vocabulary"
-  scale 1 to 5
-  scoring
-    intellect +1
-
-question
-  text "Have a vivid imagination"
-  scale 1 to 5
-  scoring
-    intellect +1
-
-question
-  text "Have difficulty understanding abstract ideas"
-  scale 1 to 5
-  scoring
-    intellect -1
-
-question
-  text "Am not interested in abstract ideas"
-  scale 1 to 5
-  scoring
-    intellect -1
-
-interpretation
-  if extraversion > 5
-  if conscientiousness > 5
-    High Extraversion, High Conscientiousness: You're organized, social, and achievement-oriented. You thrive in leadership roles and group settings.
-
-interpretation
-  if extraversion > 5
-  if agreeableness > 5
-    High Extraversion, High Agreeableness: You're warm, outgoing, and people-focused. You excel at building relationships and creating harmony.
-
-interpretation
-  if conscientiousness > 5
-  if emotional_stability > 5
-    High Conscientiousness, High Stability: You're reliable, calm, and methodical. You handle pressure well and deliver consistent results.
-
-interpretation
-  if intellect > 5
-  if extraversion > 5
-    High Intellect, High Extraversion: You're intellectually curious and socially engaged. You love discussing ideas with others.
-
-interpretation
-  if agreeableness > 5
-  if emotional_stability > 5
-    High Agreeableness, High Stability: You're easygoing, empathetic, and emotionally balanced. You create peaceful, supportive environments.</textarea>
-
-    <button onclick="previewTest()">Preview</button>
-    <button onclick="createShareLink()">Create Share Link</button>
-    
-    <div id="error" class="error" style="display:none"></div>
-    <div id="shareLink" style="display:none; margin-top: 20px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
-      <h3>✓ Share this link:</h3>
-      <input type="text" id="linkInput" readonly style="width: 100%; padding: 12px; margin: 10px 0; font-family: monospace; font-size: 14px;">
-      <button onclick="copyLink()">Copy Link</button>
-    </div>
   </div>
 
-  <div style="margin-top: 40px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+  <h3 style="margin-top: 30px;">Test Definition</h3>
+  <textarea id="definition" rows="25" placeholder="Start typing or load an example..."></textarea>
+
+  <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+    <button onclick="previewTest()">Preview</button>
+    <button onclick="createShareLink()">Create Share Link</button>
+  </div>
+
+  <div id="error" class="error" style="display:none"></div>
+
+  <div id="shareLink" class="share-link-box" style="display:none">
+    <h3>✓ Share this link</h3>
+    <input type="text" id="linkInput" readonly>
+    <button onclick="copyLink()">Copy Link</button>
+  </div>
+
+  <div class="card" style="margin-top: 40px;">
     <h3>Syntax Guide</h3>
-    <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto;">
-<strong>dimension</strong> dimension_name
+<pre style="background: var(--bg); padding: 16px; border-radius: 8px; overflow-x: auto; border: 2px solid var(--ink); font-size: 13px; line-height: 1.5;"><strong>dimension</strong> dimension_name
   <strong>range</strong> -10 to 10
+  <strong>description</strong> "What this measures"
 
 <strong>question</strong>
   <strong>text</strong> "Your question here"
@@ -209,66 +59,69 @@ interpretation
 
 <strong>interpretation</strong>
   <strong>if</strong> dimension_name > 5
-    Your interpretation text here
-    </pre>
+    Your interpretation text here</pre>
   </div>
+</div>
 
-  <script src="parser.js"></script>
-  <script src="examples.js"></script>
-  <script>
-    function loadExample(name) {
-      document.getElementById('definition').value = examples[name]
+<script src="parser.js"></script>
+<script src="examples.js"></script>
+<script>
+  // Pre-fill with MBTI example
+  document.getElementById('definition').value = examples.mbti;
+
+  function loadExample(name) {
+    document.getElementById('definition').value = examples[name];
+    document.getElementById('shareLink').style.display = 'none';
+  }
+
+  function showError(msg) {
+    const errorDiv = document.getElementById('error');
+    errorDiv.textContent = msg;
+    errorDiv.style.display = 'block';
+    setTimeout(() => errorDiv.style.display = 'none', 5000);
+  }
+
+  function validateTest(text) {
+    const test = parseTest(text);
+    if (test.dimensions.length === 0) return { error: 'Add at least one dimension!' };
+    if (test.questions.length === 0) return { error: 'Add at least one question!' };
+    return { test };
+  }
+
+  function previewTest() {
+    try {
+      const { test, error } = validateTest(document.getElementById('definition').value);
+      if (error) { showError(error); return; }
+      alert(`✓ Valid test!\n\n${test.dimensions.length} dimensions\n${test.questions.length} questions\n${test.interpretations.length} interpretations\n${test.characters.length} characters`);
+    } catch (e) {
+      showError('Parse error: ' + e.message);
     }
+  }
 
-    function showError(msg) {
-      const errorDiv = document.getElementById('error')
-      errorDiv.textContent = msg
-      errorDiv.style.display = 'block'
-      setTimeout(() => errorDiv.style.display = 'none', 5000)
+  function createShareLink() {
+    try {
+      const { test, error } = validateTest(document.getElementById('definition').value);
+      if (error) { showError(error); return; }
+      const encoded = encodeTest(test);
+      const url = `${window.location.origin}/test.html#${encoded}`;
+      document.getElementById('linkInput').value = url;
+      document.getElementById('shareLink').style.display = 'block';
+      document.getElementById('shareLink').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {
+      showError('Error creating link: ' + e.message);
     }
+  }
 
-    function validateTest(text) {
-      const test = parseTest(text)
-      if (test.dimensions.length === 0) return { error: 'Add at least one dimension!' }
-      if (test.questions.length === 0) return { error: 'Add at least one question!' }
-      return { test }
-    }
+  function copyLink() {
+    const input = document.getElementById('linkInput');
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = event.target;
+      const originalText = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = originalText, 2000);
+    });
+  }
+</script>
 
-    function previewTest() {
-      try {
-        const { test, error } = validateTest(document.getElementById('definition').value)
-        if (error) { showError(error); return }
-        alert(`✓ Valid test!\n\n${test.dimensions.length} dimensions\n${test.questions.length} questions\n${test.interpretations.length} interpretations\n${test.characters.length} characters`)
-      } catch (e) {
-        showError('Parse error: ' + e.message)
-      }
-    }
-
-    function createShareLink() {
-      try {
-        const { test, error } = validateTest(document.getElementById('definition').value)
-        if (error) { showError(error); return }
-
-        const encoded = encodeTest(test)
-        const url = `${window.location.origin}/test.html#${encoded}`
-
-        document.getElementById('linkInput').value = url
-        document.getElementById('shareLink').style.display = 'block'
-        document.getElementById('shareLink').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      } catch (e) {
-        showError('Error creating link: ' + e.message)
-      }
-    }
-
-    function copyLink() {
-      const input = document.getElementById('linkInput')
-      navigator.clipboard.writeText(input.value).then(() => {
-        const btn = event.target
-        const originalText = btn.textContent
-        btn.textContent = 'Copied!'
-        setTimeout(() => btn.textContent = originalText, 2000)
-      })
-    }
-  </script>
 </body>
 </html>
